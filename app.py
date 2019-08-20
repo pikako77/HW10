@@ -79,7 +79,9 @@ def stations():
 
     session.close()
 
-    return jsonify(results) 
+    all_names = list(np.ravel(results))
+
+    return jsonify(all_names) 
 
 @app.route("/api/v1.0/tobs")
 def tobs():
@@ -111,6 +113,61 @@ def tobs():
     
     return jsonify(data_dict) 
 
+#@app.route("/api/v1.0/<start>")
+@app.route("/api/v1.0/<start_date>/<end_date>")
+def temp_analysis(start_date,end_date):
+    session = Session(engine)
+
+    # if end_date==None:
+    #    tmp = session.query(measurement.date).order_by(measurement.date.desc()).first()
+    #    end_date = str((tmp)[2:12])
+
+    # get date in datetime format
+    # yr_last,mo_last,day_last = start_date.split("-")
+    # start_date_dt = dt.datetime(int(yr_last), int(mo_last), int(day_last))
+
+    # yr_last,mo_last,day_last = end_date[0].split("-")
+    # end_date_dt = dt.datetime(int(yr_last), int(mo_last), int(day_last))
+
+    results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+        filter(measurement.date >= start_date).filter(measurement.date <= end_date).all()
+
+    session.close()
+    data_dict = []
+
+    data_dict = {'temp_min': results[0][0] , 
+             'temp_max': results[0][2] , 
+             'temp_average': results[0][1] }
+    
+
+    return jsonify(data_dict)
+
+@app.route("/api/v1.0/<start_date>")
+def temp_analysis2(start_date):
+    session = Session(engine)
+
+    tmp = session.query(measurement.date).order_by(measurement.date.desc()).first()
+    end_date = str(tmp)[2:12]
+
+    # get year,month and day of the last data
+    yr_last,mo_last,day_last = end_date.split("-")
+
+    # Get the date one year before the last data date
+    end_date = dt.datetime(int(yr_last), int(mo_last), int(day_last))
+
+
+    results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
+        filter(measurement.date >= start_date).filter(measurement.date <= end_date).all()
+
+    session.close()
+    data_dict = []
+
+    data_dict = {'temp_min': results[0][0] , 
+             'temp_max': results[0][2] , 
+             'temp_average': results[0][1] }
+    
+
+    return jsonify(data_dict)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
