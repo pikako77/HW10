@@ -118,17 +118,6 @@ def tobs():
 def temp_analysis(start_date,end_date):
     session = Session(engine)
 
-    # if end_date==None:
-    #    tmp = session.query(measurement.date).order_by(measurement.date.desc()).first()
-    #    end_date = str((tmp)[2:12])
-
-    # get date in datetime format
-    # yr_last,mo_last,day_last = start_date.split("-")
-    # start_date_dt = dt.datetime(int(yr_last), int(mo_last), int(day_last))
-
-    # yr_last,mo_last,day_last = end_date[0].split("-")
-    # end_date_dt = dt.datetime(int(yr_last), int(mo_last), int(day_last))
-
     results = session.query(func.min(measurement.tobs), func.avg(measurement.tobs), func.max(measurement.tobs)).\
         filter(measurement.date >= start_date).filter(measurement.date <= end_date).all()
 
